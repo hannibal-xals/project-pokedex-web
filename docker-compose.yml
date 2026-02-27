@@ -1,7 +1,24 @@
 services:
   pokedex-web:
     build: .
-    ports:
-      - "3000:3000"
+    container_name: project-pokedex-web
     environment:
       - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - default
+      - edge
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=project-hub-edge
+      - traefik.http.routers.pokedex-web.rule=Host(`pokedex.${BASE_DOMAIN:-xalslab.cloud}`)
+      - traefik.http.routers.pokedex-web.entrypoints=websecure
+      - traefik.http.routers.pokedex-web.tls=true
+      - traefik.http.routers.pokedex-web.tls.certresolver=letsencrypt
+      - traefik.http.routers.pokedex-web.middlewares=secure-headers
+      - traefik.http.services.pokedex-web.loadbalancer.server.port=3000
+
+networks:
+  edge:
+    external: true
+    name: project-hub-edge
